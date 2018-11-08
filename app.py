@@ -45,7 +45,9 @@ def home():
 # Return the JSON representation of your dictionary.
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    precipitation_data_last_12_months = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date.between("2016-08-23", "2017-08-23"))
+    precipitation_data_last_12_months = session.query(Measurement.date, Measurement.prcp) \
+    .filter(Measurement.date.between("2016-08-23", "2017-08-23"))
+
     precepdict = {date : prcp for date, prcp in precipitation_data_last_12_months}
     return jsonify(precepdict)
 
@@ -56,19 +58,21 @@ def stations():
     stations_list = [station for station in stations]
     return jsonify(stations_list)
 
+# query for the dates and temperature observations from a year from the last data point.
+# Return a JSON list of Temperature Observations (tobs) for the previous year.
+@app.route("/api/v1.0/tobs")
+def tobs():
+    dates_temperatures = session.query(Measurement.date, Measurement.tobs).filter(func.strftime("%Y-%m-%d", Measurement.date) >= "2016-08-23").filter(func.strftime("%Y-%m-%d", Measurement.date) <= "2017-08-23").all()
 
-# # query for the dates and temperature observations from a year from the last data point.
-# # Return a JSON list of Temperature Observations (tobs) for the previous year.
-# @app.route("/api/v1.0/tobs")
+    dates_temperatures_dict = [temperature for date, temperature in dates_temperatures]
+    return jsonify(dates_temperatures_dict)
 
-
-# # In[ ]:
-
-
-# # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
-# # When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
-# # When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
+# Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+# When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
+# When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
 # @app.route("/api/v1.0/<start>")
+# def start():
+
 
 # @app.route("api/v1.0/<start>/<end>")
 
