@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, func
 # 1. import Flask
 from flask import Flask, jsonify
 
-engine = create_engine("sqlite:///Data/hawaii.sqlite")
+engine = create_engine("sqlite:///Data/hawaii.sqlite?check_same_thread=False")
 conn = engine.connect()
 
 
@@ -37,9 +37,10 @@ def home():
     "Available directories</br>"
     "/api/v1.0/precipitation</br>"
     "/api/v1.0/stations</br>"
-    "/api/v1.0/tobs</br>"
-    "/api/v1.0/<start></br>"
-    "/api/v1.0/<start>/<end>")
+    "/api/v1.0/tobs</br></br>"
+    "The following links depend on user input.  Please replace &lt;start_date&gt; and &lt;end_date&gt; with a date in the format YYYY-MM-DD</br>"
+    "/api/v1.0/&lt;start_date&gt;</br>"
+    "/api/v1.0/&lt;start_date&gt;/&lt;end_date&gt;")
 
 # Convert the query results to a Dictionary using date as the key and prcp as the value.
 # Return the JSON representation of your dictionary.
@@ -67,19 +68,23 @@ def tobs():
     dates_temperatures_dict = [temperature for date, temperature in dates_temperatures]
     return jsonify(dates_temperatures_dict)
 
-# Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
-# When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
-# When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
-# @app.route("/api/v1.0/<start>")
-# def start():
+"""Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
+When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive."""
+@app.route("/api/v1.0/<start_date>")
+def start(start_date):
+    # start_date = input("Please enter a start date in the format YYYY-MM-DD")
 
+    min_max_avg_from_start = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).filter(func.strftime("%Y-%m-%d", Measurement.date) >= start_date).filter(func.strftime("%Y-%m-%d", Measurement.date) <= "2017-08-23").all()
+    min_max_avg_from_start
 
-# @app.route("api/v1.0/<start>/<end>")
+    return jsonify(min_max_avg_from_start)
 
-
-# In[ ]:
-
+@app.route("/api/v1.0/<start_date>/<end_date>")
+def start_end(start_date, end_date):
+    min_max_avg_from_start = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).filter(func.strftime("%Y-%m-%d", Measurement.date) >= start_date).filter(func.strftime("%Y-%m-%d", Measurement.date) <= end_date).all()
+    min_max_avg_from_start
+    return jsonify(min_max_avg_from_start)
 
 if __name__ == "__main__":
     app.run(debug=True)
-
